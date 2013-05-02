@@ -19,3 +19,5 @@ if [ $r1 == '00' ];then fmt="tcp\t%u.%u.%u.%u:%u\t\t%u.%u.%u.%u:%u\n";fi
 printf $fmt 0x$l4 0x$l3 0x$l2 0x$l1 0x$li 0x$r4 0x$r3 0x$r2 0x$r1 0x$ri
 done < /proc/net/tcp
 # Replace with /proc/net/udp to view UDP info
+
+#EOF#
