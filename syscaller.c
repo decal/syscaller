@@ -1,7 +1,7 @@
 /*
  * syscaller v0.8a - breaking out of chroot jails "ex nihilo"
  *
- * by Derek Callaway <decal@security-objectives.com>
+ * by Derek Callaway <decal %at% ethernet %dot% org>
  *
  *
  * Executes system calls instead of relying on programs from the
