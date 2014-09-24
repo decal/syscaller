@@ -1,6 +1,9 @@
 #!/bin/bash
 # netstat.bash by Derek Callaway <decal %at% ethernet %org%>
 # Sun Feb 14 15:56:26 EST 2010 DC/SO
+# 
+# Useful if IP stack related command line tools are unavailable; will display traffic
+# that goes unreported by rogue netstat binaries installed over by userland rootkits.
 
 function netstat()
 {
