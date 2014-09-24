@@ -1,6 +1,9 @@
 #!/bin/bash
-# ps.bash by Derek Callaway <decal %at% ethernet %org%>
+# ps.bash by Derek Callaway < decal [AT] ethernet [D0T] org >
 # Sun Sep  5 15:37:05 EDT 2010 DC/SO
+#
+# Displays variable values stored in the kernel's process table data structure and is
+# capable of exposing PID's being hidden by infected bytecode in /bin/ps binaries.
 
 alias uname='cat /proc/version' hostname='cat /proc/sys/kernel/hostname'
 alias domainname='cat /proc/sys/kernel/domainname' vim='vi'
