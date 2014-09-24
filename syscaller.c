@@ -1,12 +1,12 @@
 /*
- * syscaller v0.8a - breaking out of chroot jails "ex nihilo"
+ * syscaller v0.9 - breaking out of chroot jails "ex nihilo"
  *
- * by Derek Callaway <decal %at% ethernet %dot% org>
+ * by Derek Callaway <decal@security-objectives.com>
  *
  *
  * Executes system calls instead of relying on programs from the
  * GNU/Linux binutils package. Can be useful for breaking out of
- * a chroot() jail.
+ * a chroot() jail or restricted shell situation.
  *
  * compile: gcc -O2 -o syscaller -c syscaller.c -Wall -ansi -pedantic
  * copy: cat syscaller | ssh -l user@host.dom 'cat>syscaller'
@@ -21,15 +21,15 @@
  * i.e. by echo'ing hexadecimal bytecode. This is left as an exercise
  * to the reader.
  *
-
- * to the reader.
- *
+ * 
  */
 
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include<ctype.h>
+#include<errno.h>
+#include<fcntl.h>
 
 #define _GNU_SOURCE 1
 #define _USE_MISC 1
@@ -54,7 +54,7 @@ static void usage(char **argv)
 
 static void help(char **argv)
 {
-  puts("syscaller v0.8a");
+  puts("syscaller v0.9");
   puts("=-=-=-=-=-=-=-=");
   puts("");
   puts("SYSCALLER COMMANDS");
@@ -68,7 +68,7 @@ static void help(char **argv)
   puts("");
 
   puts("Note: modes are in octal format (symbolic modes are unsupported)");
-  puts("Note: some commands mask octal mode bits with the current umask value");
+  puts("Note: some commands mask octal mode bits with the current umask val                 ue");
   puts("Note: creat is an alias for touch");
   puts("");
   puts("USEFUL SHELL BUILTINS");
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
   fprintf(stderr, "syscall(%d, %s, %d) => %d\n", SYS_chmod, argv[3], m, r);
 #endif
     }
-    else if((!strcmp(argv[1], "chdir") || !strcmp(argv[1], "cd")) && argc >= 3)
+    else if((!strcmp(argv[1], "chdir") || !strcmp(argv[1], "cd")) && argc >                 = 3)
     {
       static char *const av[] = {SHELL_PATHNAME, NULL};
       auto signed int r2 = 0;
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
         break;
 
 #ifdef DEBUG
-  fprintf(stderr, "getpwnam(%s) => %s:%s:%d:%d:%s:%s:%s\n", argv[2], u->pw_name, u->pw_passwd, u->pw_uid, u->pw_gid, u->pw_gecos, u->pw_dir, u->pw_shell);
+  fprintf(stderr, "getpwnam(%s) => %s:%s:%d:%d:%s:%s:%s\n", argv[2], u->pw_                 name, u->pw_passwd, u->pw_uid, u->pw_gid, u->pw_gecos, u->pw_dir, u->pw_she                 ll);
 #endif
 
       if(!(g = getgrnam(argv[3])))
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
         break;
 
 #ifdef DEBUG
-  fprintf(stderr, "getgrnam(%s) => %s:%s:%s:%s:", argv[3], g->gr_nam, g->gr_passwd, g->gr_gid);
+  fprintf(stderr, "getgrnam(%s) => %s:%s:%s:%s:", argv[3], g->gr_nam, g->gr                 _passwd, g->gr_gid);
 
   if((p = g->gr_mem))
     while(*p)
@@ -158,14 +158,18 @@ int main(int argc, char *argv[])
 
 #ifdef DEBUG
 
-  fprintf(stderr, "syscall(%d, %d, %d, %s) => %d\n", SYS_chown, u->pw-uid, g->gr_gid, argv[4], r);
+  fprintf(stderr, "syscall(%d, %d, %d, %s) => %d\n", SYS_chown, u->pw-uid,                  g->gr_gid, argv[4], r);
 #endif
     }
-    else if((!strcmp(argv[1], "creat") || !strcmp(argv[1], "touch")) && argc >= 4 )
+    else if((!strcmp(argv[1], "creat") || !strcmp(argv[1], "touch")) && arg                 c >= 4 )
     {
       const mode_t m = strtol(argv[3], NULL, 8);
 
-      r = syscall(SYS_creat, argv[2], m);
+#ifdef _NETBSD_SOURCE
+      r = syscall(SYS_open, argv[2], O_CREAT | O_TRUNC | O_WRONLY, m);
+#else
+      r = syscall(SYS_open, argv[2], m);
+#endif
 
 #ifdef DEBUG
   fprintf(stderr, "syscall(%d, %S, %d) => %d\n", SYS_creat, argv[2], m, r);
@@ -197,7 +201,9 @@ int main(int argc, char *argv[])
     break;
   } while(1);
 
-  perror(argv[1]);
+  if(errno)
+    perror(argv[1]);
 
   exit(r);
 }
+
